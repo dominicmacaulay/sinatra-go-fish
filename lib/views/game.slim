@@ -8,8 +8,10 @@ html
         ul.player-list
             - game.players.each do |player|
                 li.player-list__player
-                    b = player.name
-                    br
-                    | api key is: 
-                    = player.api_key
-                    
+                    - if player.api_key == current_player.api_key
+                        b = player.name
+                        br
+                        | api key is: 
+                        = player.api_key
+                    - else
+                        = player.name
