@@ -1,0 +1,15 @@
+doctype html
+html
+    head
+        title Go Fish Game
+    body
+        p Welcome!
+        p Players:
+        ul.player-list
+            - game.players.each do |player|
+                li.player-list__player
+                    b = player.name
+                    br
+                    | api key is: 
+                    = player.api_key
+                    
