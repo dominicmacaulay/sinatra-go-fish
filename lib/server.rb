@@ -35,6 +35,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
 
   get '/game' do
     redirect '/' if game.empty?
+    # TODO: if the passed in params contain an api key that is recognized, continue else send 401
     respond_to do |f|
       f.html { slim :game, locals: { game: game, current_player: session[:current_player] } }
       f.json { json players: game.players }

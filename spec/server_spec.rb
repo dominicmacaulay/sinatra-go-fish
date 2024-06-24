@@ -31,11 +31,14 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
       session.click_on 'Join'
       expect(session).to have_content('Players')
       expect(session).to have_css('b', text: player_name)
-      expect(session).to have_content('api key')
     end
     expect(session2).to have_content('Player 1')
+    expect(session2).not_to have_css('b', text: 'Player 1')
+    expect(session2).to have_content('api key', count: 1)
     session1.driver.refresh
     expect(session1).to have_content('Player 2')
+    expect(session1).not_to have_css('b', text: 'Player 2')
+    expect(session2).to have_content('api key', count: 1)
   end
 end
 
