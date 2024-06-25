@@ -12,6 +12,9 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
   before do
     Capybara.app = Server.new
   end
+  after do
+    Server.reset!
+  end
 
   it 'is possible to join a game' do
     api_index('John')
@@ -28,6 +31,29 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
   it 'redirects to index if the client is not a player' do
     visit '/game'
     expect(page).to have_content('Enter your name')
+  end
+
+  it "doesn't display cards or a current player when there aren't enough players" do
+    api_index('John')
+    expect(page).not_to have_content('Hand')
+    expect(page).not_to have_content('Books')
+    expect(page).not_to have_content('current player')
+  end
+
+  it 'displays cards, books and the current player when there are enough players' do
+    session1 = Capybara::Session.new(:rack_test, Server.new)
+    session2 = Capybara::Session.new(:rack_test, Server.new)
+    [session1, session2].each_with_index do |session, index|
+      player_name = "Player #{index + 1}"
+      api_index(player_name, session)
+    end
+    expect(session2).to have_content('Hand', count: 1)
+    expect(session2).to have_content('Books', count: 2)
+    expect(session2).to have_content('current player', count: 1)
+    session1.driver.refresh
+    expect(session1).to have_content('Hand', count: 1)
+    expect(session1).to have_content('Books', count: 2)
+    expect(session1).to have_content('current player', count: 1)
   end
 
   it 'allows multiple players to join game' do
@@ -66,9 +92,9 @@ RSpec.describe Server do
   def app
     Server.new
   end
-  #   after do
-  #     Server.reset!
-  #   end
+  after do
+    Server.reset!
+  end
   it 'returns game status via API' do
     api_post('Caleb')
     api_key = JSON.parse(last_response.body)['api_key']

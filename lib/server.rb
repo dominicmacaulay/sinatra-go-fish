@@ -14,18 +14,18 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   register Sinatra::RespondWith
   use Rack::JSONBodyParser
 
-  def game
+  def self.game
     @@game ||= Game.new
   end
 
-  def keys
-    @keys ||= []
+  def self.keys
+    @@keys ||= []
   end
 
-  #   def reset
-  #     @keys = []
-  #     @@game = Game.new
-  #   end
+  def self.reset!
+    @@keys = nil
+    @@game = nil
+  end
 
   get '/' do
     slim :index
@@ -42,20 +42,28 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   get '/game' do
-    redirect '/' if game.empty? || !session[:current_player]
+    redirect '/' if self.class.game.empty? || !session[:current_player]
+    start_game_if_possible
 
     respond_to do |f|
       f.html do
-        slim :game, locals: { game: game, current_player: session[:current_player] }
+        slim :game,
+             locals: { game: self.class.game, current_player: session[:current_player], api_key: session[:api_key] }
       end
       f.json do
         protected!
-        json players: game.players
+        json players: self.class.game.players
       end
     end
   end
 
   private
+
+  def start_game_if_possible
+    return if self.class.game.started == true
+
+    self.class.game.start if self.class.game.players.count >= 2
+  end
 
   def validate_player_name
     name = params['name']
@@ -67,8 +75,8 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
     player = Player.new(name, api_key)
     session[:current_player] = player
     session[:api_key] = api_key
-    keys << api_key
-    game.add_player(player)
+    self.class.keys << api_key
+    self.class.game.add_player(player)
   end
 
   def make_api_key
@@ -83,6 +91,6 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
 
   def authorized?
     auth ||= Rack::Auth::Basic::Request.new(request.env)
-    game.players.find { |player| player.api_key == auth.credentials.first }
+    self.class.game.players.find { |player| player.api_key == auth.username }
   end
 end

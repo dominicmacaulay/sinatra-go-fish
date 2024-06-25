@@ -3,15 +3,49 @@ html
     head
         title Go Fish Game
     body
-        p Welcome!
-        p Players:
+        |Welcome 
+        = current_player.name
+        |!
+        br
+        | Your api key is: 
+        = api_key
+        p
+            b Players:
         ul.player-list
             - game.players.each do |player|
                 li.player-list__player
                     - if player.api_key == current_player.api_key
                         b = player.name
-                        br
-                        | Your api key is: 
-                        = player.api_key
+                        -if game.started
+                            br
+                            span -Hand: 
+                            ul.cards
+                                - player.hand.each do |card|
+                                    li.card
+                                        = card.rank 
+                                        |  of 
+                                        = card.suit
+                            br
+                            span -Books:
+                            ul.cards
+                                - player.books.each do |card|
+                                    li.card
+                                        = card.rank 
+                                        |  of 
+                                        = card.suit
+                            br
                     - else
                         = player.name
+                        - if game.started
+                            br
+                            span -Books:
+                            ul.cards
+                                -player.books.each do |card|
+                                    li.card
+                                        = card.rank 
+                                        |  of 
+                                        = card.suit
+                            br
+    - if game.current_player
+        |The current player is: 
+        = game.current_player.name
