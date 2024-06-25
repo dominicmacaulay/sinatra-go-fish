@@ -32,12 +32,9 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   post '/join' do
+    name = validate_player_name
     player_api_key = make_api_key
-    player = Player.new(params['name'], player_api_key)
-    session[:current_player] = player
-    session[:api_key] = player_api_key
-    keys << player_api_key
-    game.add_player(player)
+    create_player(name, player_api_key)
     respond_to do |f|
       f.html { redirect '/game' }
       f.json { json api_key: player_api_key }
@@ -59,6 +56,20 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   private
+
+  def validate_player_name
+    name = params['name']
+    redirect '/' unless name.length.positive?
+    name
+  end
+
+  def create_player(name, api_key)
+    player = Player.new(name, api_key)
+    session[:current_player] = player
+    session[:api_key] = api_key
+    keys << api_key
+    game.add_player(player)
+  end
 
   def make_api_key
     SecureRandom.hex(10)

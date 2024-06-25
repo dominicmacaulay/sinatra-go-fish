@@ -19,6 +19,12 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     expect(page).to have_content('John')
   end
 
+  it 'redirects the player to enter their name again if the name is invalid' do
+    visit '/'
+    click_on 'Join'
+    expect(page).to have_content('Enter your name')
+  end
+
   it 'redirects to index if the client is not a player' do
     visit '/game'
     expect(page).to have_content('Enter your name')
