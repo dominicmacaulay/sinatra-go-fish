@@ -14,11 +14,14 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
   end
 
   it 'is possible to join a game' do
-    visit '/'
-    fill_in :name, with: 'John'
-    click_on 'Join'
+    api_index('John')
     expect(page).to have_content('Players')
     expect(page).to have_content('John')
+  end
+
+  it 'redirects to index if the client is not a player' do
+    visit '/game'
+    expect(page).to have_content('Enter your name')
   end
 
   it 'allows multiple players to join game' do
@@ -26,9 +29,7 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     session2 = Capybara::Session.new(:rack_test, Server.new)
     [session1, session2].each_with_index do |session, index|
       player_name = "Player #{index + 1}"
-      session.visit '/'
-      session.fill_in :name, with: player_name
-      session.click_on 'Join'
+      api_index(player_name, session)
       expect(session).to have_content('Players')
       expect(session).to have_css('b', text: player_name)
     end
@@ -42,9 +43,7 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     session2 = Capybara::Session.new(:rack_test, Server.new)
     [session1, session2].each_with_index do |session, index|
       player_name = "Player #{index + 1}"
-      session.visit '/'
-      session.fill_in :name, with: player_name
-      session.click_on 'Join'
+      api_index(player_name, session)
     end
     expect(session2).to have_content('Player 1')
     expect(session2).not_to have_css('b', text: 'Player 1')
@@ -92,4 +91,16 @@ def api_post(name)
     'HTTP_ACCEPT' => 'application/json',
     'CONTENT_TYPE' => 'application/json'
   }
+end
+
+def api_index(name, session = nil)
+  if session
+    session.visit '/'
+    session.fill_in :name, with: name
+    session.click_on 'Join'
+  else
+    visit '/'
+    fill_in :name, with: name.to_s
+    click_on 'Join'
+  end
 end

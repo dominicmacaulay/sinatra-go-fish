@@ -45,11 +45,10 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   get '/game' do
-    redirect '/' if game.empty?
+    redirect '/' if game.empty? || !session[:current_player]
 
     respond_to do |f|
       f.html do
-        halt 401, "These are not the fish you're looking for..." unless session[:current_player]
         slim :game, locals: { game: game, current_player: session[:current_player] }
       end
       f.json do
