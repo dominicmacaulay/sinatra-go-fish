@@ -18,6 +18,15 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
     @@game ||= Game.new
   end
 
+  def keys
+    @keys ||= []
+  end
+
+  #   def reset
+  #     @keys = []
+  #     @@game = Game.new
+  #   end
+
   get '/' do
     slim :index
   end
@@ -26,25 +35,27 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
     player_api_key = make_api_key
     player = Player.new(params['name'], player_api_key)
     session[:current_player] = player
+    session[:api_key] = player_api_key
+    keys << player_api_key
     game.add_player(player)
     respond_to do |f|
-      f.html do
-        session['HTTP_AUTHORIZATION'] = "Basic #{Base64.encode64("#{player_api_key}:X")}"
-        redirect '/game'
-      end
+      f.html { redirect '/game' }
       f.json { json api_key: player_api_key }
     end
   end
 
   get '/game' do
     redirect '/' if game.empty?
-    # TODO: if the passed in params contain an api key that is recognized, continue else send 401
-    key = session['HTTP_AUTHORIZATION'].nil? ? request.env['HTTP_AUTHORIZATION'] : session['HTTP_AUTHORIZATION']
-    halt 401, 'Unauthorized' unless valid_api_key?(key)
 
     respond_to do |f|
-      f.html { slim :game, locals: { game: game, current_player: session[:current_player] } }
-      f.json { json players: game.players }
+      f.html do
+        halt 401, "These are not the fish you're looking for..." unless session[:current_player]
+        slim :game, locals: { game: game, current_player: session[:current_player] }
+      end
+      f.json do
+        protected!
+        json players: game.players
+      end
     end
   end
 
@@ -54,12 +65,14 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
     SecureRandom.hex(10)
   end
 
-  def valid_api_key?(key)
-    credentials = key.split(' ').last
-    api_key = Base64.decode64(credentials).split(':').first
-    game.players.each do |player|
-      return true if api_key.include? player.api_key
-    end
-    false
+  def protected!
+    return if authorized?
+
+    halt 401, 'Not authorized...'
+  end
+
+  def authorized?
+    auth ||= Rack::Auth::Basic::Request.new(request.env)
+    game.players.find { |player| player.api_key == auth.credentials.first }
   end
 end

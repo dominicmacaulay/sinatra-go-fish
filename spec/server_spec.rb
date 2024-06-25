@@ -61,27 +61,35 @@ RSpec.describe Server do
   def app
     Server.new
   end
+  #   after do
+  #     Server.reset!
+  #   end
   it 'returns game status via API' do
-    post '/join', { 'name' => 'Caleb' }.to_json, {
-      'HTTP_ACCEPT' => 'application/json',
-      'CONTENT_TYPE' => 'application/json'
-    }
+    api_post('Caleb')
     api_key = JSON.parse(last_response.body)['api_key']
     expect(api_key).not_to be_nil
-    get '/game', nil, {
-      'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{api_key}:X")}",
-      'HTTP_ACCEPT' => 'application/json'
-    }
+    api_get(api_key)
     expect(JSON.parse(last_response.body).keys).to include 'players'
   end
 
   it 'returns an error if the key is not authorized' do
+    api_post('Caleb')
     api_key = '12345'
-    expect(api_key).not_to be_nil
-    get '/game', nil, {
-      'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{api_key}:X")}",
-      'HTTP_ACCEPT' => 'application/json'
-    }
+    api_get(api_key)
     expect(last_response.status).to eql 401
   end
+end
+
+def api_get(api_key)
+  get '/game', nil, {
+    'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{api_key}:X")}",
+    'HTTP_ACCEPT' => 'application/json'
+  }
+end
+
+def api_post(name)
+  post '/join', { 'name' => name.to_s }.to_json, {
+    'HTTP_ACCEPT' => 'application/json',
+    'CONTENT_TYPE' => 'application/json'
+  }
 end
