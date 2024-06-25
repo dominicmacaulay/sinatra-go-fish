@@ -62,6 +62,15 @@ class Player
     unique_cards != find_unique_cards
   end
 
+  def as_json
+    {
+      name: name,
+      api_key: api_key,
+      hand: hand.map(&:as_json),
+      books: books.map(&:as_json)
+    }
+  end
+
   private
 
   def find_unique_cards

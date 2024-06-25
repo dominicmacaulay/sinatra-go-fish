@@ -1,0 +1,16 @@
+{
+  "id": "file:/card.json#",
+  "type": "object",
+  "required": [
+    "rank",
+    "suit"
+  ],
+  "properties": {
+    "rank": {
+      "type": "string"
+    },
+    "deck": {
+      "type": "string"
+    }
+  }
+}

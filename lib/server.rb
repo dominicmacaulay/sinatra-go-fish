@@ -5,6 +5,7 @@ require 'sinatra/json'
 require 'sinatra/respond_with'
 require 'rack/contrib'
 require 'securerandom'
+require 'oj'
 
 require_relative 'go-fish/player'
 require_relative 'go-fish/game'
@@ -52,7 +53,8 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
       end
       f.json do
         protected!
-        json players: self.class.game.players
+        # Oj.dump(self.class.game)
+        json self.class.game.as_json
       end
     end
   end

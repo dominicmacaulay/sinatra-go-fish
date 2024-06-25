@@ -1,0 +1,21 @@
+{
+    "id": "file:/game.json#",
+    "type": "object",
+    "required": [
+        "players",
+        "deck"
+    ],
+    "properties": {
+        "players": {
+            "type": "array",
+            "items": {
+                "$ref": "file:/player.json#"
+            }
+        },
+        "deck": {
+            "items": {
+                "$ref": "file:/deck.json#"
+            }
+        }
+    }
+}

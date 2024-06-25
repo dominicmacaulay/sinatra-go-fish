@@ -17,6 +17,9 @@ gem 'slim'
 group :test do
   gem 'capybara'
   gem 'capybara-selenium'
+  gem 'json_matchers'
   gem 'rack-test'
   gem 'rspec'
 end
+
+gem 'oj'

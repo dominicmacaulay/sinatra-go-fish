@@ -26,6 +26,12 @@ class Deck
     cards.count
   end
 
+  def as_json
+    {
+      cards: cards.map(&:as_json)
+    }
+  end
+
   private
 
   def make_cards

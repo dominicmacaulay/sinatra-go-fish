@@ -100,7 +100,8 @@ RSpec.describe Server do
     api_key = JSON.parse(last_response.body)['api_key']
     expect(api_key).not_to be_nil
     api_get(api_key)
-    expect(JSON.parse(last_response.body).keys).to include 'players'
+    expect(last_response.status).to eq 200
+    expect(last_response).to match_json_schema('game')
   end
 
   it 'returns an error if the key is not authorized' do

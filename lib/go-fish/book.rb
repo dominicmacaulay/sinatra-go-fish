@@ -11,4 +11,10 @@ class Book
   def value
     @value ||= cards.first.value
   end
+
+  def as_json
+    {
+      cards: cards.map(&:to_json)
+    }
+  end
 end

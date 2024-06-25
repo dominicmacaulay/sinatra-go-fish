@@ -1,0 +1,15 @@
+{
+  "id": "file:/book.json#",
+  "type": "object",
+  "required": [
+    "cards"
+  ],
+  "properties": {
+    "cards": {
+      "type": "array",
+      "items": {
+        "$ref": "file:/card.json#"
+      }
+    }
+  }
+}
