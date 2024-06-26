@@ -47,6 +47,6 @@ html
             div
               label for="card_rank" Select Rank:
               select#card_rank name="card_rank"
-                - game.current_player.hand.each do |card|
+                - game.current_player.hand.uniq(&:rank).each do |card|
                   option value="#{card.rank}" = card.rank
             button Ask Player

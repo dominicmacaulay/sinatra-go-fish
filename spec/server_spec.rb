@@ -135,7 +135,8 @@ RSpec.describe Server do
       Server.game.players.first.add_to_hand([*create_cards('6', 1), *create_cards('8', 2)])
       Server.game.players.last.add_to_hand(create_cards('2', 1))
       [@session1, @session2].each { |session| session.driver.refresh }
-      expect(@session1).to have_select('card_rank', with_options: %w[6 8 8])
+      expect(@session1).to have_select('card_rank', with_options: %w[6 8])
+      expect(@session1).to have_select('card_rank', with_options: %w[8], count: 1)
       expect(@session1).not_to have_select('card_rank', with_options: %w[2])
       expect(@session2).not_to have_select('card_rank')
     end
