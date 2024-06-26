@@ -38,11 +38,31 @@ class Game
     self.started = true
   end
 
+  def play_round(opponent_api_key, rank)
+    opponent = find_player_by_api(opponent_api_key)
+    make_transaction(opponent, rank)
+  end
+
   def as_json
     { players: players.map(&:as_json),
       deck: deck.as_json,
       deal_number: deal_number,
       current_player: current_player&.as_json,
       started: started }
+  end
+
+  private
+
+  def make_transaction(player, rank)
+    player_transaction(player, rank)
+  end
+
+  def player_transaction(player, rank)
+    cards = player.remove_cards_with_rank(rank)
+    current_player.add_to_hand(cards)
+  end
+
+  def find_player_by_api(api_key)
+    players.detect { |player| player.api_key == api_key }
   end
 end

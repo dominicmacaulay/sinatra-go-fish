@@ -121,6 +121,9 @@ RSpec.describe Server do
       @player2_name = 'Player 2'
       @session1 = create_session_and_player(@player1_name)
       @session2 = create_session_and_player(@player2_name)
+      Server.game.players.each { |player| player.hand.clear }
+      Server.game.players.first.add_to_hand([*create_cards('6', 1), *create_cards('8', 2)])
+      Server.game.players.last.add_to_hand([*create_cards('2', 1), *create_cards('8', 1)])
       [@session1, @session2].each { |session| session.driver.refresh }
     end
 
@@ -131,14 +134,16 @@ RSpec.describe Server do
     end
 
     it 'allows the current player to select a rank' do
-      Server.game.players.each { |player| player.hand.clear }
-      Server.game.players.first.add_to_hand([*create_cards('6', 1), *create_cards('8', 2)])
-      Server.game.players.last.add_to_hand(create_cards('2', 1))
-      [@session1, @session2].each { |session| session.driver.refresh }
       expect(@session1).to have_select('card_rank', with_options: %w[6 8])
       expect(@session1).to have_select('card_rank', with_options: %w[8], count: 1)
       expect(@session1).not_to have_select('card_rank', with_options: %w[2])
       expect(@session2).not_to have_select('card_rank')
+    end
+
+    it 'allows the current player to submit their game actions' do
+      @session1.click_on 'Ask Player'
+      expect(@session1).not_to have_content('Ask Player')
+      expect(@session1).to have_content('6', count: 1)
     end
   end
 end

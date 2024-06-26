@@ -61,6 +61,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   post '/game' do
+    self.class.game.play_round(params['opponent'], params['card_rank'])
     redirect '/game'
   end
 
