@@ -46,14 +46,7 @@ class Game
     message = run_transaction(opponent, rank)
     message.book_was_made if current_player.make_book?
     switch_player unless message.got_rank
-    check_for_winners
     message
-  end
-
-  def check_for_winners
-    return unless players.map(&:hand_count).sum.zero? && deck.cards.empty?
-
-    self.winners = determine_winners
   end
 
   def as_json
@@ -66,27 +59,6 @@ class Game
 
   private
 
-  def determine_winners
-    possible_winners = players_with_highest_book_count
-    player_with_highest_book_value(possible_winners)
-  end
-
-  def player_with_highest_book_value(players)
-    maximum_value = 0
-    players.each do |player|
-      maximum_value = player.total_book_value if player.total_book_value > maximum_value
-    end
-    players.select { |player| player.total_book_value == maximum_value }
-  end
-
-  def players_with_highest_book_count
-    maximum_value = 0
-    players.each do |player|
-      maximum_value = player.book_count if player.book_count > maximum_value
-    end
-    players.select { |player| player.book_count == maximum_value }
-  end
-
   def switch_player
     index = players.index(current_player)
     self.current_player = players[(index + 1) % players.count]
@@ -96,7 +68,7 @@ class Game
     return opponent_transaction(opponent, rank) if opponent.hand_has_rank?(rank)
     return pond_transaction(opponent, rank) unless deck.cards_count.zero?
 
-    pond_empty(opponent, rank)
+    RoundResult.new(player: current_player, opponent: opponent, rank: rank, fished: true, empty_pond: true)
   end
 
   def opponent_transaction(opponent, rank)
@@ -109,23 +81,20 @@ class Game
   def pond_transaction(opponent, rank)
     card = deck.deal
     current_player.add_to_hand(card)
-    if card.equal_rank?(rank)
-      RoundResult.new(player: current_player, opponent: opponent, rank: rank, fished: true, got_rank: true)
-    else
-      RoundResult.new(player: current_player, opponent: opponent, rank: rank, fished: true, card_gotten: card.rank)
+    if card.rank == rank
+      return RoundResult.new(player: current_player, opponent: opponent, rank: rank, fished: true, got_rank: true)
     end
-  end
 
-  def pond_empty(opponent, rank)
-    RoundResult.new(player: current_player, opponent: opponent, rank: rank, fished: true, empty_pond: true)
+    RoundResult.new(player: current_player, opponent: opponent, rank: rank, fished: true, card_gotten: card.rank)
   end
 
   def integer_to_string(integer)
+    return 'zero' if integer.zero?
     return 'one' if integer == 1
     return 'two' if integer == 2
     return 'three' if integer == 3
 
-    'several'
+    'several' if integer >= 4
   end
 
   def find_player_by_api(api_key)

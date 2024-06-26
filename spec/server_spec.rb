@@ -140,10 +140,28 @@ RSpec.describe Server do
       expect(@session2).not_to have_select('card_rank')
     end
 
-    it 'allows the current player to submit their game actions' do
+    it 'allows the current player to submit their game actions and displays their updated cards' do
       @session1.click_on 'Ask Player'
       expect(@session1).not_to have_content('Ask Player')
-      expect(@session1).to have_content('6', count: 1)
+      expect(@session1).to have_content('of', count: 4)
+    end
+
+    it 'allows the current player to submit their game actions and displays both players updated cards' do
+      @session1.select '8', from: 'card_rank'
+      @session1.click_on 'Ask Player'
+      expect(@session1).to have_content('Ask Player')
+      expect(@session1).to have_content('8 of', count: 3)
+      @session2.driver.refresh
+      expect(@session2).not_to have_content('8 of')
+    end
+
+    it 'allows the current player to submit their game actions and displays their updated hand and books' do
+      Server.game.players.first.add_to_hand(create_cards('8', 1))
+      @session1.select '8', from: 'card_rank'
+      @session1.click_on 'Ask Player'
+      expect(@session1).to have_content('Ask Player')
+      expect(@session1).not_to have_content('8 of')
+      expect(@session1).to have_content("8's", count: 1)
     end
   end
 end
