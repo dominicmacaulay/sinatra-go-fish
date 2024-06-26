@@ -41,6 +41,7 @@ RSpec.describe Server do
       expect(page).not_to have_content('Hand')
       expect(page).not_to have_content('Books')
       expect(page).not_to have_content('current player')
+      expect(page).not_to have_content('Ask Player')
     end
 
     it "doesn't start the game if there are not enough players" do
@@ -55,6 +56,7 @@ RSpec.describe Server do
       @session2 = create_session_and_player('Player 2')
       [@session1, @session2].each { |session| session.driver.refresh }
     end
+
     it 'displays cards, books and the current player when there are enough players' do
       [@session1, @session2].each do |session|
         expect(session).to have_content('Hand', count: 1)
@@ -90,6 +92,7 @@ RSpec.describe Server do
       Server.game.players.last.add_to_hand(create_cards('2', 4))
       [@session1, @session2].each { |session| session.driver.refresh }
     end
+
     it 'displays the session player hand only' do
       expect(@session1).to have_content('4 of Hearts')
       expect(@session2).to have_content('2 of Spades')
@@ -109,6 +112,14 @@ RSpec.describe Server do
     it "displays the turn actions to the game's current player" do
       expect(@session1).to have_content('Ask Player')
       expect(@session2).not_to have_content('Ask Player')
+    end
+  end
+
+  describe 'plays a turn' do
+    before do
+      @session1 = create_session_and_player('Player 1')
+      @session2 = create_session_and_player('Player 2')
+      [@session1, @session2].each { |session| session.driver.refresh }
     end
   end
 end

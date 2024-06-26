@@ -35,12 +35,18 @@ html
 
     - if game.current_player
       p The current player is: #{game.current_player.name}
+
       - if game.current_player == session_player
-         form action="/game" method="post"
-            label for="name" Enter an opponent's name:
-            input#name type="text" name="name"
-            br
-            label for="rank" Enter desired rank:
-            input#rank type="text" name="rank"
-            br
+          form action="/game" method="post"
+            div
+              label for="opponent" Select Player:
+              select#opponent name="opponent"
+                - game.players.each do |other_player|
+                  - unless other_player == session_player
+                    option value="#{other_player.api_key}" = other_player.name
+            div
+              label for="card_rank" Select Rank:
+              select#card_rank name="card_rank"
+                - game.current_player.hand.each do |card|
+                  option value="#{card.rank}" = card.rank
             button Ask Player
