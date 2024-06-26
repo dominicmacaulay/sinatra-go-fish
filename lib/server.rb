@@ -37,6 +37,8 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
     name = validate_player_name
     player_api_key = make_api_key
     create_player(name, player_api_key)
+    start_game_if_possible
+
     respond_to do |f|
       f.html { redirect '/game' }
       f.json { json api_key: player_api_key }
@@ -45,7 +47,6 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
 
   get '/game' do
     redirect '/' if self.class.game.empty? || !session[:session_player]
-    start_game_if_possible
 
     respond_to do |f|
       f.html do
@@ -61,6 +62,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   post '/game' do
+    # TODO: validate the inputs first
     self.class.game.play_round(params['opponent'], params['card_rank'])
     redirect '/game'
   end
