@@ -33,6 +33,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   post '/join' do
+    halt 423, 'Sorry. This game is full...' if self.class.game.started
     name = validate_player_name
     player_api_key = make_api_key
     create_player(name, player_api_key)
@@ -62,7 +63,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   private
 
   def start_game_if_possible
-    halt 423, 'Sorry. The game is full...' if self.class.game.started == true
+    return if self.class.game.started == true
 
     self.class.game.start if self.class.game.players.count == Game::PLAYER_CAPACITY
   end

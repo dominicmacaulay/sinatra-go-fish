@@ -1,49 +1,35 @@
 doctype html
 html
-    head
-        title Go Fish Game
-    body
-        |Welcome 
-        = current_player.name
-        |!
-        br
-        | Your api key is: 
-        = api_key
-        p
-            b Players:
-        ul.player-list
-            - game.players.each do |player|
-                li.player-list__player
-                    - if player.api_key == current_player.api_key
-                        b = player.name
-                        -if game.started
-                            br
-                            span -Hand: 
-                            ul.cards
-                                - player.hand.each do |card|
-                                    li.card
-                                        = card.rank 
-                                        |  of 
-                                        = card.suit
-                            br
-                            span -Books:
-                            ul.cards
-                                - player.books.each do |book|
-                                    li.card
-                                        = book.rank
-                                        | 's
-                            br
-                    - else
-                        = player.name
-                        - if game.started
-                            br
-                            span -Books:
-                            ul.cards
-                                -player.books.each do |book|
-                                    li.card
-                                        = book.rank
-                                        | 's
-                            br
+  head
+    title Go Fish Game
+  body
+    p Welcome #{current_player.name}!
+    p Your api key is: #{api_key}
+    p
+      strong Players:
+
+    ul.player-list
+      - game.players.each do |player|
+        - is_current_player = player.api_key == current_player.api_key
+        li.player-list__player
+          p
+            - if is_current_player
+              strong = player.name
+            - else
+              = player.name
+
+          - if game.started
+            - if is_current_player
+              p Hand:
+              ul.cards
+                - player.hand.each do |card|
+                  li.card #{card.rank} of #{card.suit}
+
+            - if player.books.any?
+              p Books:
+              ul.cards
+                - player.books.each do |book|
+                  li.card #{book.rank}'s
+
     - if game.current_player
-        |The current player is: 
-        = game.current_player.name
+      span The current player is: #{game.current_player.name}

@@ -47,15 +47,13 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     expect(Server.game.started).not_to be true
   end
 
-  it 'displays cards, books and the current player when there are enough players' do
+  it 'displays cards and the current player when there are enough players' do
     session1 = create_session_and_player('Player 1')
     session2 = create_session_and_player('Player 2')
     expect(session2).to have_content('Hand', count: 1)
-    expect(session2).to have_content('Books', count: 2)
     expect(session2).to have_content('current player', count: 1)
     session1.driver.refresh
     expect(session1).to have_content('Hand', count: 1)
-    expect(session1).to have_content('Books', count: 2)
     expect(session1).to have_content('current player', count: 1)
   end
 
@@ -66,7 +64,7 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
       player_name = "Player #{index + 1}"
       api_index(player_name, session)
       expect(session).to have_content('Players')
-      expect(session).to have_css('b', text: player_name)
+      expect(session).to have_css('strong', text: player_name)
     end
     expect(session2).to have_content('Player 1')
     session1.driver.refresh
@@ -77,11 +75,11 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     session1 = create_session_and_player('Player 1')
     session2 = create_session_and_player('Player 2')
     expect(session2).to have_content('Player 1')
-    expect(session2).not_to have_css('b', text: 'Player 1')
+    expect(session2).not_to have_css('strong', text: 'Player 1')
     expect(session2).to have_content('api key', count: 1)
     session1.driver.refresh
     expect(session1).to have_content('Player 2')
-    expect(session1).not_to have_css('b', text: 'Player 2')
+    expect(session1).not_to have_css('strong', text: 'Player 2')
     expect(session2).to have_content('api key', count: 1)
   end
 
