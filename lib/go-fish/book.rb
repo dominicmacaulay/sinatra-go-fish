@@ -12,6 +12,10 @@ class Book
     @value ||= cards.first.value
   end
 
+  def rank
+    @rank ||= cards.first.rank
+  end
+
   def as_json
     {
       cards: cards.map(&:to_json)

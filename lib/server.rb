@@ -88,7 +88,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   def protected!
     return if authorized?
 
-    halt 401, 'Not authorized...'
+    halt 401, "These are not the fish you're looking for..."
   end
 
   def authorized?

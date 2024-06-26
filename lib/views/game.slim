@@ -18,7 +18,6 @@ html
                         b = player.name
                         -if game.started
                             br
-                            / TODO: change to the player display method
                             span -Hand: 
                             ul.cards
                                 - player.hand.each do |card|
@@ -29,11 +28,10 @@ html
                             br
                             span -Books:
                             ul.cards
-                                - player.books.each do |card|
+                                - player.books.each do |book|
                                     li.card
-                                        = card.rank 
-                                        |  of 
-                                        = card.suit
+                                        = book.rank
+                                        | 's
                             br
                     - else
                         = player.name
@@ -41,11 +39,10 @@ html
                             br
                             span -Books:
                             ul.cards
-                                -player.books.each do |card|
+                                -player.books.each do |book|
                                     li.card
-                                        = card.rank 
-                                        |  of 
-                                        = card.suit
+                                        = book.rank
+                                        | 's
                             br
     - if game.current_player
         |The current player is: 
