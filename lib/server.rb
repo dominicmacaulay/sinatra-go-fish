@@ -44,13 +44,13 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   get '/game' do
-    redirect '/' if self.class.game.empty? || !session[:current_player]
+    redirect '/' if self.class.game.empty? || !session[:session_player]
     start_game_if_possible
 
     respond_to do |f|
       f.html do
         slim :game,
-             locals: { game: self.class.game, current_player: session[:current_player], api_key: session[:api_key] }
+             locals: { game: self.class.game, session_player: session[:session_player], api_key: session[:api_key] }
       end
       f.json do
         protected!
@@ -58,6 +58,10 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
         json self.class.game.as_json
       end
     end
+  end
+
+  post '/game' do
+    redirect '/game'
   end
 
   private
@@ -76,7 +80,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
 
   def create_player(name, api_key)
     player = Player.new(name, api_key)
-    session[:current_player] = player
+    session[:session_player] = player
     session[:api_key] = api_key
     self.class.keys << api_key
     self.class.game.add_player(player)

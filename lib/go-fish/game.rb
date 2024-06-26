@@ -39,12 +39,10 @@ class Game
   end
 
   def as_json
-    {
-      players: players.map(&:as_json),
+    { players: players.map(&:as_json),
       deck: deck.as_json,
       deal_number: deal_number,
       current_player: current_player&.as_json,
-      started: started
-    }
+      started: started }
   end
 end

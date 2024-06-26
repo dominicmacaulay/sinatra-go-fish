@@ -3,14 +3,14 @@ html
   head
     title Go Fish Game
   body
-    p Welcome to Go Fish, #{current_player.name}!
+    p Welcome to Go Fish, #{session_player.name}!
     p Your api key is: #{api_key}
     p
       strong Players:
 
     ul.player-list
       - game.players.each do |player|
-        - is_current_player = player.api_key == current_player.api_key
+        - is_current_player = player == session_player
         li.player-list__player
           p
             - if is_current_player
@@ -34,4 +34,13 @@ html
               p Books: none
 
     - if game.current_player
-      span The current player is: #{game.current_player.name}
+      p The current player is: #{game.current_player.name}
+      - if game.current_player == session_player
+         form action="/game" method="post"
+            label for="name" Enter an opponent's name:
+            input#name type="text" name="name"
+            br
+            label for="rank" Enter desired rank:
+            input#rank type="text" name="rank"
+            br
+            button Ask Player

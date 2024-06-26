@@ -62,6 +62,10 @@ class Player
     unique_cards != find_unique_cards
   end
 
+  def ==(other)
+    other.api_key == api_key
+  end
+
   def as_json
     {
       name: name,
