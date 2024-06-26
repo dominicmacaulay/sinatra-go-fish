@@ -42,6 +42,11 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     expect(page).not_to have_content('current player')
   end
 
+  it "doesn't start the game if there are not enough players" do
+    api_index('John')
+    expect(Server.game.started).not_to be true
+  end
+
   it 'displays cards, books and the current player when there are enough players' do
     session1 = create_session_and_player('Player 1')
     session2 = create_session_and_player('Player 2')

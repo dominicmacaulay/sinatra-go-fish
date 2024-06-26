@@ -62,9 +62,9 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   private
 
   def start_game_if_possible
-    return if self.class.game.started == true
+    halt 423, 'Sorry. The game is full...' if self.class.game.started == true
 
-    self.class.game.start if self.class.game.players.count >= 2
+    self.class.game.start if self.class.game.players.count == Game::PLAYER_CAPACITY
   end
 
   def validate_player_name

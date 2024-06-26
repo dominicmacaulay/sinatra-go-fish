@@ -5,6 +5,7 @@ require_relative 'round_result'
 
 # go fish game class
 class Game
+  PLAYER_CAPACITY = 2
   MINIMUM_BOOK_LENGTH = 4
   attr_reader :players, :deal_number
   attr_accessor :current_player, :started
