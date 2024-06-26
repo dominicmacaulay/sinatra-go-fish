@@ -3,7 +3,7 @@ html
   head
     title Go Fish Game
   body
-    p Welcome #{current_player.name}!
+    p Welcome to Go Fish, #{current_player.name}!
     p Your api key is: #{api_key}
     p
       strong Players:
@@ -30,6 +30,8 @@ html
               ul.cards
                 - player.books.each do |book|
                   li.card #{book.rank}'s
+            - else
+              p Books: none
 
     - if game.current_player
       span The current player is: #{game.current_player.name}

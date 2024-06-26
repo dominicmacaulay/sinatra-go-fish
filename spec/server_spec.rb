@@ -47,13 +47,15 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     expect(Server.game.started).not_to be true
   end
 
-  it 'displays cards and the current player when there are enough players' do
+  it 'displays cards, books and the current player when there are enough players' do
     session1 = create_session_and_player('Player 1')
     session2 = create_session_and_player('Player 2')
     expect(session2).to have_content('Hand', count: 1)
+    expect(session2).to have_content('Books: none', count: 2)
     expect(session2).to have_content('current player', count: 1)
     session1.driver.refresh
     expect(session1).to have_content('Hand', count: 1)
+    expect(session1).to have_content('Books: none', count: 2)
     expect(session1).to have_content('current player', count: 1)
   end
 
@@ -104,6 +106,8 @@ RSpec.describe Server do # rubocop:disable Metrics/BlockLength
     Server.game.players.last.add_to_hand(create_cards('2', 4))
     Server.game.players.each(&:make_book?)
     [session1, session2].each { |session| session.driver.refresh }
+    expect(session1).not_to have_content('Books: none')
+    expect(session2).not_to have_content('Books: none')
     expect(session1).to have_content("4's")
     expect(session2).to have_content("2's")
   end
