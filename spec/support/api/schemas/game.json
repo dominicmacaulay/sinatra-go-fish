@@ -5,6 +5,7 @@
         "players",
         "deck",
         "deal_number",
+        "current_player",
         "started"
     ],
     "properties": {

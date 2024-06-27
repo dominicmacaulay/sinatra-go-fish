@@ -177,7 +177,10 @@ RSpec.describe Server do
   describe 'validates api key' do
     before do
       api_post('John')
-      api_get(JSON.parse(last_response.body)['api_key'])
+      api_key = JSON.parse(last_response.body)['api_key']
+      get '/game', nil, {
+        'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{api_key}:X")}"
+      }
     end
     it 'returns game status via API' do
       api_post('Caleb')

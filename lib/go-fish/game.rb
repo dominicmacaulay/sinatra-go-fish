@@ -79,12 +79,12 @@ class Game
   end
 
   def as_json(session_player)
-    json = { players: players.map { |player| player.as_json(session_player == player) },
-             deck: deck.as_json,
-             deal_number: deal_number,
-             started: started }
-    json[current_player] = current_player.as_json if current_player == session_player
-    json
+    # binding.irb
+    { players: players.map { |player| player.as_json(session_player == player) },
+      deck: deck.as_json,
+      deal_number: deal_number,
+      current_player: current_player.as_json(session_player == current_player),
+      started: started }
   end
 
   private

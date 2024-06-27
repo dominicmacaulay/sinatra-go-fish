@@ -69,7 +69,6 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
       f.json do
         protected!
         # Oj.dump(self.class.game)
-        # TODO: only display current player if the session player is the current player
         json self.class.game.as_json(session[:session_player])
       end
     end
