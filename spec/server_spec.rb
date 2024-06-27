@@ -2,6 +2,7 @@
 
 require 'rack/test'
 require 'rspec'
+require 'json'
 require 'capybara'
 require 'capybara/dsl'
 ENV['RACK_ENV'] = 'test'
@@ -177,16 +178,14 @@ RSpec.describe Server do
   describe 'validates api key' do
     before do
       api_post('John')
-      api_key = JSON.parse(last_response.body)['api_key']
+      @player1_api_key = response['api_key']
       get '/game', nil, {
-        'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{api_key}:X")}"
+        'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{@player1_api_key}:X")}"
       }
     end
+
     it 'returns game status via API' do
-      api_post('Caleb')
-      api_key = JSON.parse(last_response.body)['api_key']
-      expect(api_key).not_to be_nil
-      api_get(api_key)
+      api_post_then_get('Caleb')
       expect(last_response.status).to eq 200
       expect(last_response).to match_json_schema('game')
     end
@@ -197,7 +196,32 @@ RSpec.describe Server do
       api_get(api_key)
       expect(last_response.status).to eql 401
     end
+
+    it 'returns subjective game information for player 2' do
+      key = api_post_then_get('Caleb')
+      expect(response['my_turn']).to be false
+      player = player_with_key(key)
+      expect(response['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
+      expect(response['opponents'].to_json).not_to match player.name.to_s
+    end
+
+    it 'returns subjective game information for player 1' do
+      api_post_then_get('Caleb')
+      api_get(@player1_api_key)
+      expect(response['my_turn']).to be true
+      player = player_with_key(@player1_api_key)
+      expect(response['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
+      expect(response['opponents'].to_json).not_to match player.name.to_s
+    end
   end
+end
+
+def player_with_key(key)
+  Server.game.players.detect { |player| player.api_key == key }
+end
+
+def response
+  JSON.parse(last_response.body)
 end
 
 def api_get(api_key)
@@ -212,6 +236,13 @@ def api_post(name)
     'HTTP_ACCEPT' => 'application/json',
     'CONTENT_TYPE' => 'application/json'
   }
+  response['api_key']
+end
+
+def api_post_then_get(name)
+  key = api_post(name)
+  api_get(key)
+  key
 end
 
 def api_index(name, session = Capybara)

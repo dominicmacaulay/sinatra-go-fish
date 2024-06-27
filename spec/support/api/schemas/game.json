@@ -2,17 +2,24 @@
     "id": "file:/game.json#",
     "type": "object",
     "required": [
-        "players",
+        "opponents",
+        "my_hand",
         "deck",
         "deal_number",
-        "current_player",
+        "my_turn",
         "started"
     ],
     "properties": {
-        "players": {
+        "opponents": {
             "type": "array",
             "items": {
                 "$ref": "file:/player.json#"
+            }
+        },
+        "my_hand": {
+            "type": "array",
+            "items": {
+                "$ref": "file:/card.json#"
             }
         },
         "deck": {
@@ -23,11 +30,8 @@
         "deal_number": {
             "type": "integer"
         },
-        "current_player": {
-            "type": "object",
-            "items": {
-                "$ref": "file:/player.json#"
-            }
+        "my_turn": {
+            "type": "boolean"
         },
         "started": {
             "type": "boolean"

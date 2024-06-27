@@ -61,13 +61,9 @@ class Player
     other.api_key == api_key
   end
 
-  def as_json(show_everything)
-    json = { name: name, books: books.map(&:as_json) }
-    if show_everything
-      json[api_key] = api_key
-      json[hand] = hand.map(&:as_json)
-    end
-    json
+  def as_json
+    { name: name,
+      books: books.map(&:as_json) }
   end
 
   private

@@ -112,8 +112,13 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
     halt 401, "These are not the fish you're looking for..."
   end
 
-  def authorized?
+  def authorized? # rubocop:disable Metrics/AbcSize
     auth ||= Rack::Auth::Basic::Request.new(request.env)
-    self.class.game.players.find { |player| player.api_key == auth.username }
+    player_with_key = self.class.game.players.detect { |player| player.api_key == auth.username }
+    unless player_with_key.nil?
+      session[:session_player] = player_with_key
+      session[:api_key] = auth.username
+    end
+    !player_with_key.nil?
   end
 end
