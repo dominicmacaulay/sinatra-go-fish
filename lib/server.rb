@@ -16,21 +16,21 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   use Rack::JSONBodyParser
 
   def self.game
-    @@game ||= Game.new
+    @@game ||= Game.new # rubocop:disable Style/ClassVars
   end
 
   def self.keys
-    @@keys ||= []
+    @@keys ||= [] # rubocop:disable Style/ClassVars
   end
 
   def self.round_result
-    @@round_result ||= nil
+    @@round_result ||= nil # rubocop:disable Style/ClassVars
   end
 
   def self.reset!
-    @@keys = nil
-    @@game = nil
-    @@round_result = nil
+    @@keys = nil # rubocop:disable Style/ClassVars
+    @@game = nil # rubocop:disable Style/ClassVars
+    @@round_result = nil # rubocop:disable Style/ClassVars
   end
 
   get '/' do
@@ -69,16 +69,15 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
       f.json do
         protected!
         # Oj.dump(self.class.game)
-        # TODO: only display current player if the session play is the current player
-        json self.class.game.as_json
+        # TODO: only display current player if the session player is the current player
+        json self.class.game.as_json(session[:session_player])
       end
     end
   end
 
   post '/game' do
     # TODO: validate the inputs first
-    # TODO: add id to each player and use that as the identifier instead of the api key
-    @@round_result = self.class.game.play_round(params['opponent'], params['card_rank'])
+    @@round_result = self.class.game.play_round(params['opponent'], params['card_rank']) # rubocop:disable Style/ClassVars
     redirect '/game'
   end
 

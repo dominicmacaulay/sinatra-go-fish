@@ -211,16 +211,10 @@ def api_post(name)
   }
 end
 
-def api_index(name, session = nil)
-  if session
-    session.visit '/'
-    session.fill_in :name, with: name
-    session.click_on 'Join'
-  else
-    visit '/'
-    fill_in :name, with: name.to_s
-    click_on 'Join'
-  end
+def api_index(name, session = Capybara)
+  session.visit '/'
+  session.fill_in :name, with: name
+  session.click_on 'Join'
 end
 
 def create_session_and_player(name)

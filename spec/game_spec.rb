@@ -194,7 +194,6 @@ RSpec.describe Game do
           current_index = game.players.index(game.current_player)
           other_player = game.players[(current_index + 1) % game.players.count]
           rank = game.current_player.hand.sample.rank
-          # puts "#{game.current_player.name} is asking for #{rank}'s"
           message = game.play_round(game.players.index(other_player), rank)
           message.display_for(game.players[current_index])
           message.display_for(other_player)

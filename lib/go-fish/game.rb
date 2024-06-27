@@ -78,12 +78,13 @@ class Game
     "#{winners.first.name} won the game with #{winners.first.book_count} books totalling in #{winners.first.total_book_value}" # rubocop:disable Layout/LineLength
   end
 
-  def as_json
-    { players: players.map(&:as_json),
-      deck: deck.as_json,
-      deal_number: deal_number,
-      current_player: current_player&.as_json,
-      started: started }
+  def as_json(session_player)
+    json = { players: players.map { |player| player.as_json(session_player == player) },
+             deck: deck.as_json,
+             deal_number: deal_number,
+             started: started }
+    json[current_player] = current_player.as_json if current_player == session_player
+    json
   end
 
   private
@@ -144,5 +145,10 @@ class Game
     return 'three' if integer == 3
 
     'several' if integer >= 4
+  end
+
+  def session_player_json(session_player)
+    correct_player = players.detect { |player| player == session_player }
+    correct_player.as_json
   end
 end
