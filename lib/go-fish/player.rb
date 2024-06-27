@@ -1,6 +1,5 @@
 # frozen_string_literal: false
 
-require_relative 'show_info'
 require_relative 'book'
 require_relative 'game'
 
@@ -48,10 +47,6 @@ class Player
 
   def rank_count(rank)
     hand.select { |card| card.equal_rank?(rank) }.count
-  end
-
-  def show_hand
-    ShowInfo.new(cards: hand)
   end
 
   def make_book?

@@ -79,7 +79,6 @@ class Game
   end
 
   def as_json(session_player)
-    # binding.irb
     { players: players.map { |player| player.as_json(session_player == player) },
       deck: deck.as_json,
       deal_number: deal_number,
