@@ -161,7 +161,7 @@ RSpec.describe Server do
       @session1.click_on 'Ask Player'
       expect(@session1).to have_content('Ask Player')
       expect(@session1).not_to have_content('8 of')
-      expect(@session1).to have_content("8's", count: 1)
+      expect(@session1).to have_content("8's", count: 2)
     end
   end
 end

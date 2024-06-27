@@ -42,9 +42,20 @@ class Game
 
   # TODO: place validation methods
 
-  def play_round(opponent_api_key, rank)
-    opponent = find_player_by_api(opponent_api_key)
-    message = run_transaction(opponent, rank)
+  def deal_to_player_if_necessary
+    return if current_player.hand_count.positive?
+
+    if deck.cards_count.zero?
+      switch_player
+      return 'Sorry. Your hand is empty and there are no cards in the pond. You will have to sit this one out.'
+    end
+
+    current_player.add_to_hand(deck.deal)
+    'Your hand was empty, but you received a card from the pond!'
+  end
+
+  def play_round(opponent_id, rank)
+    message = run_transaction(opponent_id, rank)
     message.book_was_made if current_player.make_book?
     switch_player unless message.got_rank
     check_for_winners
@@ -101,7 +112,8 @@ class Game
     self.current_player = players[(index + 1) % players.count]
   end
 
-  def run_transaction(opponent, rank)
+  def run_transaction(opponent_id, rank)
+    opponent = players[opponent_id.to_i]
     return opponent_transaction(opponent, rank) if opponent.hand_has_rank?(rank)
     return pond_transaction(opponent, rank) unless deck.cards_count.zero?
 
@@ -132,9 +144,5 @@ class Game
     return 'three' if integer == 3
 
     'several' if integer >= 4
-  end
-
-  def find_player_by_api(api_key)
-    players.detect { |player| player.api_key == api_key }
   end
 end

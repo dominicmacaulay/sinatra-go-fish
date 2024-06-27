@@ -1,6 +1,7 @@
 doctype html
 html
   head
+    meta[http-equiv="refresh" content="1"]
     title Go Fish Game
   body
     p Welcome to Go Fish, #{session_player.name}!
@@ -33,20 +34,30 @@ html
             - else
               p Books: none
 
-    - if game.current_player
-      p The current player is: #{game.current_player.name}
+    - if game_over_message
+      p
+        = game_over_message
+    -else
+      - if game.current_player
+        p The current player is: #{game.current_player.name}
+        - unless initial_message.nil?
+          p
+            = initial_message
+        p
+          - if round_result
+            = round_result.display_for(session_player)
 
-      - if game.current_player == session_player
-          form action="/game" method="post"
-            div
-              label for="opponent" Select Player:
-              select#opponent name="opponent"
-                - game.players.each do |other_player|
-                  - unless other_player == session_player
-                    option value="#{other_player.api_key}" = other_player.name
-            div
-              label for="card_rank" Select Rank:
-              select#card_rank name="card_rank"
-                - game.current_player.hand.uniq(&:rank).each do |card|
-                  option value="#{card.rank}" = card.rank
-            button Ask Player
+        - if game.current_player == session_player
+            form action="/game" method="post"
+              div
+                label for="opponent" Select Player:
+                select#opponent name="opponent"
+                  - game.players.each do |other_player|
+                    - unless other_player == session_player
+                      option value="#{game.players.index(other_player)}" = other_player.name
+              div
+                label for="card_rank" Select Rank:
+                select#card_rank name="card_rank"
+                  - game.current_player.hand.uniq(&:rank).each do |card|
+                    option value="#{card.rank}" = card.rank
+              button Ask Player

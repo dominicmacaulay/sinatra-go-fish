@@ -23,9 +23,14 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
     @@keys ||= []
   end
 
+  def self.round_result
+    @@round_result ||= nil
+  end
+
   def self.reset!
     @@keys = nil
     @@game = nil
+    @@round_result = nil
   end
 
   get '/' do
@@ -48,14 +53,23 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   get '/game' do
     redirect '/' if self.class.game.empty? || !session[:session_player]
 
+    if self.class.game.winners
+      game_over_message = self.class.game.display_winners
+      initial_message = nil
+    else
+      initial_message = (self.class.game.current_player == session[:session_player] ? self.class.game.deal_to_player_if_necessary : nil) # rubocop:disable Layout/LineLength
+      game_over_message = nil
+    end
     respond_to do |f|
       f.html do
         slim :game,
-             locals: { game: self.class.game, session_player: session[:session_player], api_key: session[:api_key] }
+             locals: { game: self.class.game, session_player: session[:session_player], api_key: session[:api_key],
+                       round_result: self.class.round_result, initial_message: initial_message, game_over_message: game_over_message } # rubocop:disable Layout/LineLength
       end
       f.json do
         protected!
         # Oj.dump(self.class.game)
+        # TODO: only display current player if the session play is the current player
         json self.class.game.as_json
       end
     end
@@ -63,7 +77,8 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
 
   post '/game' do
     # TODO: validate the inputs first
-    self.class.game.play_round(params['opponent'], params['card_rank'])
+    # TODO: add id to each player and use that as the identifier instead of the api key
+    @@round_result = self.class.game.play_round(params['opponent'], params['card_rank'])
     redirect '/game'
   end
 

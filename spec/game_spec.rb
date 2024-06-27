@@ -44,6 +44,28 @@ RSpec.describe Game do
     end
   end
 
+  describe 'deal_to_player_if_necessary' do
+    before do
+      game.add_player(player1)
+      game.add_player(player2)
+      game.current_player = player1
+    end
+    it 'returns nil if the player has cards' do
+      player1.add_to_hand(Card.new('4', 'Hearts'))
+      expect(game.deal_to_player_if_necessary).to be nil
+    end
+    it 'returns a message if the deck is also empty and switches players' do
+      game.deck.clear_cards
+      message = 'Sorry. Your hand is empty and there are no cards in the pond. You will have to sit this one out.'
+      expect(game.deal_to_player_if_necessary).to eq message
+      expect(game.current_player).to be player2
+    end
+    it 'returns a message if the player received cards' do
+      message = 'Your hand was empty, but you received a card from the pond!'
+      expect(game.deal_to_player_if_necessary).to eq message
+    end
+  end
+
   describe 'play_round' do
     before do
       game.add_player(player1)
@@ -56,12 +78,12 @@ RSpec.describe Game do
         player2.add_to_hand(Card.new('4', 'Spades'))
       end
       it 'take the card from the opponent and gives it to the player' do
-        game.play_round(player2.api_key, '4')
+        game.play_round(game.players.index(player2), '4')
         expect(player2.hand_has_rank?('4')).to be false
         expect(player1.rank_count('4')).to be 2
       end
       it 'returns object' do
-        result = game.play_round(player2.api_key, '4')
+        result = game.play_round(game.players.index(player2), '4')
         object = RoundResult.new(player: player1, opponent: player2, rank: '4', got_rank: true, amount: 'one')
         expect(result).to eq object
       end
@@ -70,7 +92,7 @@ RSpec.describe Game do
     describe 'runs transaction if the pond has no cards in it' do
       it 'sends the player a message saying that the pond was empty' do
         game.deck.clear_cards
-        result = game.play_round(player2.api_key, '4')
+        result = game.play_round(game.players.index(player2), '4')
         object = RoundResult.new(player: player1, opponent: player2, rank: '4', fished: true, empty_pond: true)
         expect(result).to eq object
       end
@@ -80,14 +102,14 @@ RSpec.describe Game do
       it 'returns message object if the player got the card they wanted' do
         game = Game.new([player1, player2], deck_cards: [Card.new('4', 'Spades')])
         game.current_player = player1
-        result = game.play_round(player2.api_key, '4')
+        result = game.play_round(game.players.index(player2), '4')
         object = RoundResult.new(player: player1, opponent: player2, rank: '4', fished: true, got_rank: true)
         expect(result).to eq object
       end
       it 'returns a message object if the player did not get the card they wanted' do
         game = Game.new([player1, player2], deck_cards: [Card.new('4', 'Spades')])
         game.current_player = player1
-        result = game.play_round(player2.api_key, '2')
+        result = game.play_round(game.players.index(player2), '2')
         object = RoundResult.new(player: player1, opponent: player2, rank: '2', fished: true, card_gotten: '4')
         expect(result).to eq object
       end
@@ -96,7 +118,7 @@ RSpec.describe Game do
     describe 'creating a book' do
       it 'creates books if possible' do
         player2.add_to_hand([Card.new('4', 'Clubs'), Card.new('4', 'Spades'), Card.new('4', 'Diamonds')])
-        game.play_round(player2.api_key, '4')
+        game.play_round(game.players.index(player2), '4')
         expect(player1.book_count).to be 1
       end
     end
@@ -106,14 +128,14 @@ RSpec.describe Game do
         game = Game.new([player1, player2], deck_cards: [Card.new('6', 'Spades')])
         game.current_player = player1
         player2.add_to_hand(Card.new('5', 'Clubs'))
-        game.play_round(player2.api_key, '4')
+        game.play_round(game.players.index(player2), '4')
         expect(game.current_player).to eql player2
       end
 
       it 'does not switch players if the player got what they wanted from the opponent' do
         player1.add_to_hand(Card.new('4', 'Spades'))
         player2.add_to_hand(Card.new('4', 'Clubs'))
-        game.play_round(player2.api_key, '4')
+        game.play_round(game.players.index(player2), '4')
         expect(game.current_player).to eql player1
       end
 
@@ -122,7 +144,7 @@ RSpec.describe Game do
         game.current_player = player1
         player1.add_to_hand(Card.new('4', 'Spades'))
         player2.add_to_hand(Card.new('5', 'Clubs'))
-        game.play_round(player2.api_key, '4')
+        game.play_round(game.players.index(player2), '4')
         expect(game.current_player).to eql player1
       end
     end
@@ -159,25 +181,27 @@ RSpec.describe Game do
   end
 
   describe 'smoke test' do
-    let(:player1) { Player.new('Dom', 123) }
-    let(:player2) { Player.new('Micah', 456) }
-    let(:player3) { Player.new('Josh', 789) }
-    let(:game) { Game.new([player1, player2, player3]) }
     it 'runs test' do
-      game.start
-      until game.winners
-        game.deal_to_player_if_necessary
-        current_index = game.players.index(game.current_player)
-        other_player = game.players[(current_index + 1) % game.players.count]
-        rank = game.current_player.hand.sample.rank
-        puts "#{game.current_player.name} is asking for #{rank}'s"
-        message = game.play_round(other_player, rank)
-        puts message.display_for(game.players[current_index])
-        puts message.display_for(other_player)
-        puts message.display_for(game.players[(current_index + 2) % game.players.count])
-        puts
+      5.times do
+        player1 = Player.new('Dom', 123)
+        player2 = Player.new('Josh', 456)
+        player3 = Player.new('Micah', 789)
+        game = Game.new([player1, player2, player3])
+        game.start
+        until game.winners
+          next unless game.deal_to_player_if_necessary.nil?
+
+          current_index = game.players.index(game.current_player)
+          other_player = game.players[(current_index + 1) % game.players.count]
+          rank = game.current_player.hand.sample.rank
+          # puts "#{game.current_player.name} is asking for #{rank}'s"
+          message = game.play_round(game.players.index(other_player), rank)
+          message.display_for(game.players[current_index])
+          message.display_for(other_player)
+          message.display_for(game.players[(current_index + 2) % game.players.count])
+        end
+        puts game.display_winners
       end
-      puts game.display_winners
     end
   end
 end

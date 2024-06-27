@@ -18,12 +18,12 @@ class RoundResult
     @book_made = false
   end
 
-  def display_for(player)
-    message = current_player_message if player == current_player
+  def display_for(player) # rubocop:disable Metrics/AbcSize
+    message = current_player_message if player.api_key == current_player.api_key
 
-    message = opponent_message if player == opponent
+    message = opponent_message if player.api_key == opponent.api_key
 
-    message = other_player_message unless player == current_player || player == opponent
+    message = other_player_message unless player.api_key == current_player.api_key || player.api_key == opponent.api_key
 
     message.concat book_made ? ', then created a book with them.' : '.'
 
