@@ -13,6 +13,7 @@ RSpec.describe Game do
     it 'creates variables with correct values' do
       expect(game.deck).to respond_to(:cards)
       expect(game.started).to be false
+      expect(game.winners).to be nil
     end
   end
 
@@ -124,6 +125,76 @@ RSpec.describe Game do
         game.play_round(player2.api_key, '4')
         expect(game.current_player).to eql player1
       end
+    end
+
+    describe 'checks for winner' do
+      let(:books) { make_books(13) }
+      it 'declares the winner with the most books' do
+        winner = Player.new('Winner', 123, books: books.shift(7))
+        loser = Player.new('Loser', 456, books: books.shift(6))
+        winner_game = Game.new([winner, loser], deck_cards: [0])
+        winner_game.deck.deal
+        winner_game.check_for_winners
+        expect(winner_game.display_winners).to eql 'Winner won the game with 7 books totalling in 28'
+      end
+      it 'in case of a book tie, declares the winner with the highest book value' do
+        winner = Player.new('Winner', 123, books: books.pop(6))
+        loser1 = Player.new('Loser', 456, books: books.shift(6))
+        loser2 = Player.new('Loser', 789, books: books.shift(1))
+        winner_game = Game.new([winner, loser1, loser2], deck_cards: [0])
+        winner_game.deck.deal
+        winner_game.check_for_winners
+        expect(winner_game.display_winners).to eql 'Winner won the game with 6 books totalling in 63'
+      end
+      it 'in case of total tie, display tie messge' do
+        winner = Player.new('Winner1', 123, books: [books[1], books[3], books[5], books[7], books[9], books[11]])
+        loser1 = Player.new('Winner2', 456, books: [books[0], books[2], books[4], books[8], books[10], books[12]])
+        loser2 = Player.new('Loser', 789, books: [books[6]])
+        winner_game = Game.new([winner, loser1, loser2], deck_cards: [0])
+        winner_game.deck.deal
+        winner_game.check_for_winners
+        expect(winner_game.display_winners).to eql 'Winner1 and Winner2 tied with 6 books totalling in 42'
+      end
+    end
+  end
+
+  describe 'smoke test' do
+    let(:player1) { Player.new('Dom', 123) }
+    let(:player2) { Player.new('Micah', 456) }
+    let(:player3) { Player.new('Josh', 789) }
+    let(:game) { Game.new([player1, player2, player3]) }
+    it 'runs test' do
+      game.start
+      until game.winners
+        game.deal_to_player_if_necessary
+        current_index = game.players.index(game.current_player)
+        other_player = game.players[(current_index + 1) % game.players.count]
+        rank = game.current_player.hand.sample.rank
+        puts "#{game.current_player.name} is asking for #{rank}'s"
+        message = game.play_round(other_player, rank)
+        puts message.display_for(game.players[current_index])
+        puts message.display_for(other_player)
+        puts message.display_for(game.players[(current_index + 2) % game.players.count])
+        puts
+      end
+      puts game.display_winners
+    end
+  end
+end
+
+def make_books(times)
+  deck = retrieve_one_deck
+  books = []
+  times.times do
+    books.push(Book.new(deck.shift))
+  end
+  books
+end
+
+def retrieve_one_deck
+  Card::RANKS.map do |rank|
+    Card::SUITS.flat_map do |suit|
+      Card.new(rank, suit)
     end
   end
 end

@@ -8,7 +8,7 @@ class Game
   PLAYER_CAPACITY = 2
   MINIMUM_BOOK_LENGTH = 4
   attr_reader :players, :deal_number, :deck_cards
-  attr_accessor :current_player, :started
+  attr_accessor :current_player, :started, :winners
 
   def initialize(players = [], deal_number: 5, deck_cards: nil)
     @players = players
@@ -16,6 +16,7 @@ class Game
     @deck_cards = deck_cards
     @current_player = nil
     @started = false
+    @winners = nil
   end
 
   def empty?
@@ -46,7 +47,24 @@ class Game
     message = run_transaction(opponent, rank)
     message.book_was_made if current_player.make_book?
     switch_player unless message.got_rank
+    check_for_winners
     message
+  end
+
+  def check_for_winners
+    return unless deck.cards_count.zero? && players.map(&:hand_count).sum.zero?
+
+    self.winners = determine_winners
+  end
+
+  def display_winners # rubocop:disable Metrics/AbcSize
+    if winners.count > 1
+      message = display_winner_names
+      message.concat(" tied with #{winners.first.book_count} books totalling in #{winners.first.total_book_value}")
+      return message
+    end
+
+    "#{winners.first.name} won the game with #{winners.first.book_count} books totalling in #{winners.first.total_book_value}" # rubocop:disable Layout/LineLength
   end
 
   def as_json
@@ -58,6 +76,25 @@ class Game
   end
 
   private
+
+  def display_winner_names # rubocop:disable Metrics/AbcSize,Metrics/CyclomaticComplexity
+    message = ''
+    winners.each do |winner|
+      message.concat('and ') if winner == winners.last && winner != winners.first
+      message.concat(winner == winners.first && winners.length == 2 ? "#{winner.name} " : winner.name.to_s)
+      message.concat(', ') unless winner == winners.last || winners.length == 2
+    end
+    message
+  end
+
+  def determine_winners
+    max_books = players.map(&:book_count).max
+    players_with_max_books = players.select { |player| player.book_count == max_books }
+    return players_with_max_books unless players_with_max_books.count > 1
+
+    max_book_value = players.map(&:total_book_value).max
+    players.select { |player| player.total_book_value == max_book_value }
+  end
 
   def switch_player
     index = players.index(current_player)
