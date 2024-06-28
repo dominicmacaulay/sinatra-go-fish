@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'httparty'
+require 'json'
 # client.rb
 class Client
   include HTTParty
@@ -21,18 +22,38 @@ class Client
     @api_key = response['api_key']
   end
 
-  def state_changed?
+  def game_state
+    @game_state ||= get_game_response['game']
   end
 
-  def game_state
+  def state_changed?
+    new_response = get_game_response['game']
+    return false if new_response == game_state
+
+    reassign_game_state(new_response)
+    true
   end
 
   def current_turn?
+    game_state['my_turn']
   end
 
   def turn_prompt
   end
 
   def send_turn(input)
+  end
+
+  private
+
+  def reassign_game_state(new_state)
+    @game_state = new_state
+  end
+
+  def get_game_response # rubocop:disable Naming/AccessorMethodName
+    self.class.get('/game', {
+                     headers: { 'Http-Authorization' => "Basic #{Base64.encode64("#{api_key}:X")}",
+                                'Accept' => 'application/json' }
+                   })
   end
 end

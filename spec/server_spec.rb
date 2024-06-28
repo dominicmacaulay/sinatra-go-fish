@@ -189,7 +189,7 @@ RSpec.describe Server do
     it 'returns game status via API' do
       api_post_join_then_get('Caleb')
       expect(last_response.status).to eq 200
-      expect(last_response).to match_json_schema('game')
+      expect(response['game']).to match_json_schema('game')
     end
 
     it 'returns an error if the key is not authorized' do
@@ -207,19 +207,19 @@ RSpec.describe Server do
 
     it 'returns subjective game information for player 2' do
       key = api_post_join_then_get('Caleb')
-      expect(response['my_turn']).to be false
+      expect(response['game']['my_turn']).to be false
       player = player_with_key(key)
-      expect(response['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
-      expect(response['opponents'].to_json).not_to match player.name.to_s
+      expect(response['game']['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
+      expect(response['game']['opponents'].to_json).not_to match player.name.to_s
     end
 
     it 'returns subjective game information for player 1' do
       api_post_join_then_get('Caleb')
       api_get_game(@player1_api_key)
-      expect(response['my_turn']).to be true
+      expect(response['game']['my_turn']).to be true
       player = player_with_key(@player1_api_key)
-      expect(response['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
-      expect(response['opponents'].to_json).not_to match player.name.to_s
+      expect(response['game']['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
+      expect(response['game']['opponents'].to_json).not_to match player.name.to_s
     end
   end
 

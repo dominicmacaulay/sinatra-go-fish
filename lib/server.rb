@@ -67,7 +67,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
       end
       f.json do
         protected!
-        json self.class.game.as_json(session[:session_player])
+        json(game: self.class.game.as_json(session[:session_player]))
       end
     end
   end
