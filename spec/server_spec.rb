@@ -123,9 +123,13 @@ RSpec.describe Server do
       @session1 = create_session_and_player(@player1_name)
       @session2 = create_session_and_player(@player2_name)
       Server.game.players.each { |player| player.hand.clear }
+      Server.game.deck.clear_cards
       Server.game.players.first.add_to_hand([*create_cards('6', 1), *create_cards('8', 2)])
       Server.game.players.last.add_to_hand([*create_cards('2', 1), *create_cards('8', 1)])
       [@session1, @session2].each { |session| session.driver.refresh }
+    end
+    after do
+      Server.reset!
     end
 
     it 'allows the current player to select an opponent' do
@@ -144,7 +148,7 @@ RSpec.describe Server do
     it 'allows the current player to submit their game actions and displays their updated cards' do
       @session1.click_on 'Ask Player'
       expect(@session1).not_to have_content('Ask Player')
-      expect(@session1).to have_content('of', count: 4)
+      expect(@session1).to have_content('of', count: 3)
     end
 
     it 'allows the current player to submit their game actions and displays both players updated cards' do
@@ -224,7 +228,7 @@ RSpec.describe Server do
       @player2_api_key = api_post_join_then_get('Caleb')
       @player2 = player_with_key(@player2_api_key)
     end
-    after do
+    after(:all) do
       Server.reset!
     end
 
@@ -244,6 +248,24 @@ RSpec.describe Server do
       expect(response['game']['my_hand'].to_json).to match rank
       expect(response['game']['opponents'].to_json).not_to match @player1.name.to_s
       expect(response['game']['opponents'].to_json).to match @player2.name.to_s
+    end
+
+    it 'returns the round result and game json for player 2' do
+      rank = @player2.hand.sample.rank
+      player1_index = player_index(@player1)
+      api_post_game(@player2_api_key, player1_index, rank)
+      expect(response['round_result']).to match_json_schema('round_result')
+      expect(response['game']).to match_json_schema('game')
+    end
+
+    it 'returns accurate data for player 2' do
+      rank = @player2.hand.sample.rank
+      player1_index = player_index(@player1)
+      api_post_game(@player2_api_key, player1_index, rank)
+      expect(response['game']['my_hand'].to_json).to match @player2.hand.map(&:as_json).to_json
+      expect(response['game']['my_hand'].to_json).to match rank
+      expect(response['game']['opponents'].to_json).not_to match @player2.name.to_s
+      expect(response['game']['opponents'].to_json).to match @player1.name.to_s
     end
   end
 end

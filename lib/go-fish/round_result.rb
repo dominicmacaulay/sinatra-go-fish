@@ -5,7 +5,7 @@ class RoundResult
   attr_reader :current_player, :opponent, :rank, :fished, :got_rank, :card_gotten, :amount, :empty_pond
   attr_accessor :book_made
 
-  def initialize(player:, opponent:, rank:, fished: false, got_rank: false, card_gotten: nil, # rubocop:disable Metrics/ParameterLists,Metrics/MethodLength
+  def initialize(player:, opponent:, rank:, fished: false, got_rank: false, card_gotten: 'none', # rubocop:disable Metrics/ParameterLists,Metrics/MethodLength
                  amount: 'one', empty_pond: false)
     @current_player = player
     @opponent = opponent
