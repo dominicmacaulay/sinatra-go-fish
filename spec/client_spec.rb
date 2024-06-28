@@ -86,4 +86,18 @@ RSpec.describe Client do
       expect(client.turn_prompt).to include(include 'Enter')
     end
   end
+
+  describe 'send_turn' do
+    it 'takes a string and extracts the name and rank' do
+      client = Client.new(player_name: 'Test')
+      extracted_values = client.send_turn('Jamison for Jack of Hearts')
+      expect(extracted_values.first).to eql 'Jamison'
+      expect(extracted_values.last).to eql 'Jack'
+    end
+    it 'returns false if the input is improperly formatted' do
+      client = Client.new(player_name: 'Test')
+      extracted_values = client.send_turn('Jamison  Jack of Hearts')
+      expect(extracted_values).to be nil
+    end
+  end
 end

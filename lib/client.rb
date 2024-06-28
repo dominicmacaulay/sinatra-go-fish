@@ -42,14 +42,26 @@ class Client
     [
       "Oyo boyo. It's your turn!",
       "Enter your opponent's name and the card you'd like to ask from them",
-      'Something like this: Motörhead-Ace of Spades'
+      'Something like this: Motörhead for Ace of Spades',
+      "make sure you include that 'for' in between them it won' work otherwise."
     ]
   end
 
   def send_turn(input)
+    return unless input.include?('for')
+
+    retrieve_name_and_rank(input)
   end
 
   private
+
+  def retrieve_name_and_rank(string)
+    selections = string.split('for')
+    name = selections.first.strip
+    card = selections.last.split(' ')
+    rank = card.first.strip
+    [name, rank]
+  end
 
   def reassign_game_state(new_state)
     @game_state = new_state
