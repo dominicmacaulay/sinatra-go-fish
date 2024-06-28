@@ -73,18 +73,22 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   post '/game' do
-    current_player?
-    @@round_result = self.class.game.play_round(params['opponent'], params['card_rank']) # rubocop:disable Style/ClassVars
-
     # TODO: validate the inputs first
     respond_to do |f|
       f.html do
+        unless session[:session_player] == self.class.game.current_player
+          halt 401,
+               json(error: "Ain't your turn boyo", game: self.class.game.as_json(session[:session_player]))
+        end
         @@round_result = self.class.game.play_round(params['opponent'], params['card_rank']) # rubocop:disable Style/ClassVars
         redirect '/game'
       end
       f.json do
         protected!
-        halt 401, json(error: "Ain't your turn boyo") unless session[:session_player] == self.class.game.current_player
+        unless session[:session_player] == self.class.game.current_player
+          halt 401,
+               json(error: "Ain't your turn boyo", game: self.class.game.as_json(session[:session_player]))
+        end
         @@round_result = self.class.game.play_round(params['opponent'], params['card_rank']) # rubocop:disable Style/ClassVars
         json round_result: self.class.round_result.as_json, game: self.class.game.as_json(session[:session_player])
       end
@@ -92,19 +96,6 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   private
-
-  def current_player? # rubocop:disable Metrics/AbcSize
-    auth = Rack::Auth::Basic::Request.new(request.env)
-    player_with_key = self.class.game.players.detect { |player| player.api_key == auth.username }
-    binding.irb
-    if player_with_key.nil?
-      return unless session[:session_player] == self.class.game.current_player
-    else
-      return unless protected!
-    end
-    halt 401,
-         json(error: "Ain't your turn boyo", game: self.class.game.as_json(session[:session_player]))
-  end
 
   def start_game_if_possible
     return if self.class.game.started == true
