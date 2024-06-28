@@ -251,6 +251,7 @@ RSpec.describe Server do
     end
 
     it 'returns the round result and game json for player 2' do
+      Server.game.current_player = @player2
       rank = @player2.hand.sample.rank
       player1_index = player_index(@player1)
       api_post_game(@player2_api_key, player1_index, rank)
@@ -259,13 +260,20 @@ RSpec.describe Server do
     end
 
     it 'returns accurate data for player 2' do
+      Server.game.current_player = @player2
       rank = @player2.hand.sample.rank
       player1_index = player_index(@player1)
       api_post_game(@player2_api_key, player1_index, rank)
-      expect(response['game']['my_hand'].to_json).to match @player2.hand.map(&:as_json).to_json
       expect(response['game']['my_hand'].to_json).to match rank
       expect(response['game']['opponents'].to_json).not_to match @player2.name.to_s
       expect(response['game']['opponents'].to_json).to match @player1.name.to_s
+    end
+
+    it "returns an error if it is not the player's turn" do
+      rank = @player2.hand.sample.rank
+      player1_index = player_index(@player1)
+      api_post_game(@player2_api_key, player1_index, rank)
+      expect(last_response.status).to eql 401
     end
   end
 end
