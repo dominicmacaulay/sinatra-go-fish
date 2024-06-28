@@ -20,4 +20,19 @@ class Client
                                })
     @api_key = response['api_key']
   end
+
+  def state_changed?
+  end
+
+  def game_state
+  end
+
+  def current_turn?
+  end
+
+  def turn_prompt
+  end
+
+  def send_turn(input)
+  end
 end
