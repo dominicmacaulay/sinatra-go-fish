@@ -14,9 +14,11 @@ RSpec.describe Server do
 
   before do
     Capybara.app = Server.new
+    WebMock.disable!
   end
   after do
     Server.reset!
+    WebMock.enable!
   end
 
   describe 'onboarding the player' do
@@ -272,8 +274,10 @@ RSpec.describe Server do
     it "returns an error if it is not the player's turn" do
       rank = @player2.hand.sample.rank
       player1_index = player_index(@player1)
+      original_hand = @player2.hand.dup
       api_post_game(@player2_api_key, player1_index, rank)
       expect(last_response.status).to eql 401
+      expect(original_hand).to eql @player2.hand
     end
   end
 end

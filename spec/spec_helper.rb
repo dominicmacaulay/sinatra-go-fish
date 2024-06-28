@@ -17,6 +17,7 @@
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 require 'json_matchers/rspec'
+require 'webmock/rspec'
 
 RSpec.configure do |config|
   JsonMatchers.schema_root = 'spec/support/api/schemas'

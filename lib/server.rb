@@ -37,7 +37,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   post '/join' do
-    halt 423, 'Sorry. This game is full...' if self.class.game.started
+    halt 423, json(error: 'Sorry. This game is full...') if self.class.game.started
     name = validate_player_name
     player_api_key = make_api_key
     create_player(name, player_api_key)
@@ -81,7 +81,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
       end
       f.json do
         protected!
-        halt 401, "Ain't your turn boyo" unless session[:session_player] == self.class.game.current_player
+        halt 401, json(error: "Ain't your turn boyo") unless session[:session_player] == self.class.game.current_player
         @@round_result = self.class.game.play_round(params['opponent'], params['card_rank']) # rubocop:disable Style/ClassVars
         json round_result: self.class.round_result.as_json, game: self.class.game.as_json(session[:session_player])
       end
@@ -117,7 +117,7 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   def protected!
     return if authorized?
 
-    halt 401, "These are not the fish you're looking for..."
+    halt 401, json(error: "These are not the fish you're looking for...")
   end
 
   def authorized? # rubocop:disable Metrics/AbcSize

@@ -6,6 +6,7 @@ source 'https://rubygems.org'
 
 gem 'rubocop'
 
+gem 'httparty'
 gem 'puma'
 gem 'rack-contrib'
 gem 'rackup'
@@ -20,4 +21,5 @@ group :test do
   gem 'json_matchers'
   gem 'rack-test'
   gem 'rspec'
+  gem 'webmock'
 end
