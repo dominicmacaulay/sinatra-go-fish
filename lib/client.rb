@@ -39,6 +39,11 @@ class Client
   end
 
   def turn_prompt
+    [
+      "Oyo boyo. It's your turn!",
+      "Enter your opponent's name and the card you'd like to ask from them",
+      'Something like this: Motörhead-Ace of Spades'
+    ]
   end
 
   def send_turn(input)

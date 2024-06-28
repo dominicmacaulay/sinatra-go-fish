@@ -79,4 +79,11 @@ RSpec.describe Client do
       expect(@client.current_turn?).to be false
     end
   end
+
+  describe 'turn_prompt' do
+    it 'prompts the player' do
+      client = Client.new(player_name: 'Test')
+      expect(client.turn_prompt).to include(include 'Enter')
+    end
+  end
 end
