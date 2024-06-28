@@ -49,6 +49,20 @@ class RoundResult
     self.book_made = true
   end
 
+  def as_json # rubocop:disable Metrics/MethodLength
+    {
+      current_player: current_player.as_json,
+      opponent: opponent.as_json,
+      rank: rank,
+      fished: fished,
+      got_rank: got_rank,
+      card_gotten: card_gotten,
+      amount: amount,
+      empty_pond: empty_pond,
+      book_made: book_made
+    }
+  end
+
   private
 
   def current_player_message

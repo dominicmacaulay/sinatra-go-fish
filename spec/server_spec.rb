@@ -177,28 +177,30 @@ RSpec.describe Server do
   end
   describe 'validates api key' do
     before do
-      api_post('John')
-      @player1_api_key = response['api_key']
-      get '/game', nil, {
-        'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{@player1_api_key}:X")}"
-      }
+      api_post_join_then_get('John')
     end
 
     it 'returns game status via API' do
-      api_post_then_get('Caleb')
+      api_post_join_then_get('Caleb')
       expect(last_response.status).to eq 200
       expect(last_response).to match_json_schema('game')
     end
 
     it 'returns an error if the key is not authorized' do
-      api_post('Caleb')
+      api_post_join('Caleb')
       api_key = '12345'
-      api_get(api_key)
+      api_get_game(api_key)
       expect(last_response.status).to eql 401
+    end
+  end
+
+  describe 'gets game' do
+    before do
+      @player1_api_key = api_post_join_then_get('John')
     end
 
     it 'returns subjective game information for player 2' do
-      key = api_post_then_get('Caleb')
+      key = api_post_join_then_get('Caleb')
       expect(response['my_turn']).to be false
       player = player_with_key(key)
       expect(response['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
@@ -206,14 +208,48 @@ RSpec.describe Server do
     end
 
     it 'returns subjective game information for player 1' do
-      api_post_then_get('Caleb')
-      api_get(@player1_api_key)
+      api_post_join_then_get('Caleb')
+      api_get_game(@player1_api_key)
       expect(response['my_turn']).to be true
       player = player_with_key(@player1_api_key)
       expect(response['my_hand'].to_json).to match player.hand.map(&:as_json).to_json
       expect(response['opponents'].to_json).not_to match player.name.to_s
     end
   end
+
+  describe 'posts game' do
+    before do
+      @player1_api_key = api_post_join_then_get('John')
+      @player1 = player_with_key(@player1_api_key)
+      @player2_api_key = api_post_join_then_get('Caleb')
+      @player2 = player_with_key(@player2_api_key)
+    end
+    after do
+      Server.reset!
+    end
+
+    it 'returns the round result and game json for player 1' do
+      rank = @player1.hand.sample.rank
+      player2_index = player_index(@player2)
+      api_post_game(@player1_api_key, player2_index, rank)
+      expect(response['round_result']).to match_json_schema('round_result')
+      expect(response['game']).to match_json_schema('game')
+    end
+
+    it 'returns accurate data for player 1' do
+      rank = @player1.hand.sample.rank
+      player2_index = player_index(@player2)
+      api_post_game(@player1_api_key, player2_index, rank)
+      expect(response['game']['my_hand'].to_json).to match @player1.hand.map(&:as_json).to_json
+      expect(response['game']['my_hand'].to_json).to match rank
+      expect(response['game']['opponents'].to_json).not_to match @player1.name.to_s
+      expect(response['game']['opponents'].to_json).to match @player2.name.to_s
+    end
+  end
+end
+
+def player_index(player)
+  Server.game.players.index(player)
 end
 
 def player_with_key(key)
@@ -224,14 +260,14 @@ def response
   JSON.parse(last_response.body)
 end
 
-def api_get(api_key)
+def api_get_game(api_key)
   get '/game', nil, {
     'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{api_key}:X")}",
     'HTTP_ACCEPT' => 'application/json'
   }
 end
 
-def api_post(name)
+def api_post_join(name)
   post '/join', { 'name' => name.to_s }.to_json, {
     'HTTP_ACCEPT' => 'application/json',
     'CONTENT_TYPE' => 'application/json'
@@ -239,10 +275,18 @@ def api_post(name)
   response['api_key']
 end
 
-def api_post_then_get(name)
-  key = api_post(name)
-  api_get(key)
+def api_post_join_then_get(name)
+  key = api_post_join(name)
+  api_get_game(key)
   key
+end
+
+def api_post_game(player1, opponent, rank)
+  post '/game', { 'opponent' => opponent, 'card_rank' => rank }.to_json, {
+    'HTTP_AUTHORIZATION' => "Basic #{Base64.encode64("#{player1}:X")}",
+    'HTTP_ACCEPT' => 'application/json',
+    'CONTENT_TYPE' => 'application/json'
+  }
 end
 
 def api_index(name, session = Capybara)

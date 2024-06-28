@@ -77,7 +77,13 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   post '/game' do
     # TODO: validate the inputs first
     @@round_result = self.class.game.play_round(params['opponent'], params['card_rank']) # rubocop:disable Style/ClassVars
-    redirect '/game'
+    respond_to do |f|
+      f.html { redirect '/game' }
+      f.json do
+        protected!
+        json round_result: self.class.round_result.as_json, game: self.class.game.as_json(session[:session_player])
+      end
+    end
   end
 
   private
