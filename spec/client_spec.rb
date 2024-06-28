@@ -88,16 +88,29 @@ RSpec.describe Client do
   end
 
   describe 'send_turn' do
+    before do
+      @client = Client.new(player_name: 'Test')
+    end
     it 'takes a string and extracts the name and rank' do
-      client = Client.new(player_name: 'Test')
-      extracted_values = client.send_turn('Jamison for Jack of Hearts')
+      stub_request(:post, %r{/game}).to_return_json(body: { game: 'yay' })
+      extracted_values = @client.send_turn('Jamison for Jack of Hearts')
       expect(extracted_values.first).to eql 'Jamison'
       expect(extracted_values.last).to eql 'Jack'
     end
+
     it 'returns false if the input is improperly formatted' do
-      client = Client.new(player_name: 'Test')
-      extracted_values = client.send_turn('Jamison  Jack of Hearts')
-      expect(extracted_values).to be nil
+      extracted_values = @client.send_turn('Jamison  Jack of Hearts')
+      expect(extracted_values).to be false
+    end
+
+    it 'returns the values if the inputs are valid to the game' do
+      test_game = Game.new
+      stub_request(:get, %r{/game}).to_return_json(body: { game: test_game })
+      stub_request(:post, %r{/game}).to_return_json(body: { game: test_game })
+      @client.game_state
+      @client.send_turn('Jamison for Jack of Hearts')
+      @client.state_changed?
+      expect(@client.game_state).to eq test_game.to_s
     end
   end
 end

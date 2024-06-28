@@ -48,12 +48,23 @@ class Client
   end
 
   def send_turn(input)
-    return unless input.include?('for')
+    return false unless input.include?('for')
 
-    retrieve_name_and_rank(input)
+    name, rank = retrieve_name_and_rank(input)
+    post_to_game(name, rank)
+    [name, rank]
   end
 
   private
+
+  def post_to_game(opponent, rank)
+    self.class.post('/game', {
+                      body: { 'opponent' => opponent, 'card_rank' => rank }.to_json,
+                      headers: { 'Http-Authorization' => "Basic #{Base64.encode64("#{api_key}:X")}",
+                                 'Accept' => 'application/json',
+                                 'Content-Type' => 'application/json' }
+                    })
+  end
 
   def retrieve_name_and_rank(string)
     selections = string.split('for')
