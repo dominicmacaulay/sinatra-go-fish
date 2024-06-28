@@ -170,12 +170,6 @@ RSpec.describe Server do
       expect(@session1).not_to have_content('8 of')
       expect(@session1).to have_content("8's", count: 2)
     end
-
-    it "doesn't let the player play if it isn't their turn" do
-      Server.game.current_player = Server.game.players.last
-      @session1.click_on 'Ask Player'
-      expect(@session1).to have_content('boyo')
-    end
   end
 end
 

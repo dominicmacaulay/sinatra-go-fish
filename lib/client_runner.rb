@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # client_runner.rb
 require_relative 'client'
 
@@ -12,7 +10,7 @@ name = gets.chomp
 arguments[:player_name] = name
 client = Client.new(**arguments)
 client.join_game
-loop do
+while true
   puts client.game_state if client.state_changed?
   if client.current_turn?
     puts client.turn_prompt
