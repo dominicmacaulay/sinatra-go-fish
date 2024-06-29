@@ -7,10 +7,12 @@ class Client
   include HTTParty
 
   attr_reader :player_name, :api_key
+  attr_accessor :trying_again
 
   def initialize(player_name:, url: 'http://localhost:9292')
     self.class.base_uri url
     @player_name = player_name
+    @trying_again = false
   end
 
   def join_game
@@ -39,12 +41,10 @@ class Client
   end
 
   def turn_prompt
-    [
-      "Oyo boyo. It's your turn!",
-      "Enter your opponent's name and the card you'd like to ask from them",
-      'Something like this: Motörhead for Ace of Spades',
-      "make sure you include that 'for' in between them it won' work otherwise."
-    ]
+    return initial_prompt unless trying_again
+
+    self.trying_again = false
+    retry_prompt
   end
 
   def send_turn(input)
@@ -56,6 +56,24 @@ class Client
   end
 
   private
+
+  def initial_prompt
+    [
+      "Oyo boyo. It's your turn!",
+      "Enter your opponent's name and the card you'd like to ask from them",
+      'Remember, you can only select an opponent and one of your own cards',
+      'Something like this: Motörhead for Ace of Spades',
+      "make sure you include that 'for' in between them it won' work otherwise."
+    ]
+  end
+
+  def retry_prompt
+    [
+      'Hey now boyo. You need to follow instructions.',
+      'Remember, you can only select an opponent and one of your own cards',
+      'Try again...'
+    ]
+  end
 
   def post_to_game(opponent, rank)
     self.class.post('/game', {

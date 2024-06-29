@@ -81,9 +81,20 @@ RSpec.describe Client do
   end
 
   describe 'turn_prompt' do
-    it 'prompts the player' do
-      client = Client.new(player_name: 'Test')
-      expect(client.turn_prompt).to include(include 'Enter')
+    before do
+      @client = Client.new(player_name: 'Test')
+    end
+    it 'prompts the player to make their move' do
+      expect(@client.turn_prompt).to include(include 'Enter')
+    end
+    it 'prompts the player to try their inputs again' do
+      @client.trying_again = true
+      expect(@client.turn_prompt).to include(include 'Try again')
+    end
+    it 'resets trying_again after prompting them' do
+      @client.trying_again = true
+      @client.turn_prompt
+      expect(@client.trying_again).to be false
     end
   end
 
