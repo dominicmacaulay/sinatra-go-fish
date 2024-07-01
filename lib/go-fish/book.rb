@@ -18,7 +18,7 @@ class Book
 
   def as_json
     {
-      cards: cards.map(&:to_json)
+      cards: cards.first.as_json
     }
   end
 end

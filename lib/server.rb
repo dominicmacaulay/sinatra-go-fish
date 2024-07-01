@@ -50,24 +50,32 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
   end
 
   get '/game' do
-    redirect '/' if self.class.game.empty? || !session[:session_player]
-
-    if self.class.game.winners
-      game_over_message = self.class.game.display_winners
-      initial_message = nil
-    else
-      initial_message = (self.class.game.current_player == session[:session_player] ? self.class.game.deal_to_player_if_necessary : nil) # rubocop:disable Layout/LineLength
-      game_over_message = nil
-    end
     respond_to do |f|
       f.html do
+        redirect '/' if self.class.game.empty? || !session[:session_player]
+        if self.class.game.winners
+          game_over_message = self.class.game.display_winners
+          initial_message = nil
+        else
+          initial_message = (self.class.game.current_player == session[:session_player] ? self.class.game.deal_to_player_if_necessary : nil) # rubocop:disable Layout/LineLength
+          game_over_message = nil
+        end
         slim :game,
              locals: { game: self.class.game, session_player: session[:session_player], api_key: session[:api_key],
                        round_result: self.class.round_result, initial_message: initial_message, game_over_message: game_over_message } # rubocop:disable Layout/LineLength
       end
       f.json do
         protected!
-        json(game: self.class.game.as_json(session[:session_player]))
+        if self.class.game.started == true
+          if self.class.round_result
+            json(game: self.class.game.as_json(session[:session_player]),
+                 round_result: self.class.round_result.display_for(session[:session_player]))
+          else
+            json game: self.class.game.as_json(session[:session_player])
+          end
+        else
+          json(pending: 'waiting for other players')
+        end
       end
     end
   end
@@ -89,8 +97,14 @@ class Server < Sinatra::Base # rubocop:disable Style/Documentation
           halt 401,
                json(error: "Ain't your turn boyo", game: self.class.game.as_json(session[:session_player]))
         end
-        @@round_result = self.class.game.play_round(params['opponent'], params['card_rank']) # rubocop:disable Style/ClassVars
-        json round_result: self.class.round_result.as_json, game: self.class.game.as_json(session[:session_player])
+        opponent = nil
+        self.class.game.players.each_with_index do |player, index|
+          opponent = index if player.name == params['opponent']
+        end
+
+        @@round_result = self.class.game.play_round(opponent, params['card_rank']) # rubocop:disable Style/ClassVars
+        json(round_result: self.class.round_result.display_for(session[:session_player]),
+             game: self.class.game.as_json(session[:session_player]))
       end
     end
   end

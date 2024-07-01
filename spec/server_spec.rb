@@ -238,7 +238,7 @@ RSpec.describe Server do
       rank = @player1.hand.sample.rank
       player2_index = player_index(@player2)
       api_post_game(@player1_api_key, player2_index, rank)
-      expect(response['round_result']).to match_json_schema('round_result')
+      expect(response['round_result']).to match 'asked you'
       expect(response['game']).to match_json_schema('game')
     end
 
@@ -257,7 +257,7 @@ RSpec.describe Server do
       rank = @player2.hand.sample.rank
       player1_index = player_index(@player1)
       api_post_game(@player2_api_key, player1_index, rank)
-      expect(response['round_result']).to match_json_schema('round_result')
+      expect(response['round_result']).to match 'You asked'
       expect(response['game']).to match_json_schema('game')
     end
 

@@ -18,5 +18,5 @@ loop do
     puts client.turn_prompt
     client.send_turn(gets.chomp)
   end
-  sleep 0.1
+  sleep 1
 end

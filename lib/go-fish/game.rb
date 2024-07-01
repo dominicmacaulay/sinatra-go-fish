@@ -81,6 +81,7 @@ class Game
   def as_json(session_player)
     { opponents: players.map { |player| player.as_json unless player == session_player }.compact,
       my_hand: session_player.hand.map(&:as_json),
+      books: session_player.books.map(&:as_json),
       deck: deck.as_json,
       deal_number: deal_number,
       my_turn: current_player == session_player,

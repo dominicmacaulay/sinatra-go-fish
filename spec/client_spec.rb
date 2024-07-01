@@ -27,7 +27,7 @@ RSpec.describe Client do
 
       client = Client.new(player_name: 'Test')
       client.join_game
-      expect(client.game_state).to eq test_game.to_s
+      expect(client.game_state_json['game']).to eq test_game.to_s
     end
   end
 
@@ -39,7 +39,7 @@ RSpec.describe Client do
 
       @client = Client.new(player_name: 'Test')
       @client.join_game
-      @client.game_state
+      @client.game_state_json
     end
     it 'indicates that the game state has not changed' do
       stub_request(:get, %r{/game}).to_return_json(body: { game: @test_game })
@@ -50,7 +50,7 @@ RSpec.describe Client do
       new_game = Game.new
       stub_request(:get, %r{/game}).to_return_json(body: { game: new_game })
       expect(@client.state_changed?).to be true
-      expect(@client.game_state).to eql new_game.to_s
+      expect(@client.game_state_json['game']).to eql new_game.to_s
     end
   end
 
@@ -118,10 +118,21 @@ RSpec.describe Client do
       test_game = Game.new
       stub_request(:get, %r{/game}).to_return_json(body: { game: test_game })
       stub_request(:post, %r{/game}).to_return_json(body: { game: test_game })
-      @client.game_state
+      @client.game_state_json
       @client.send_turn('Jamison for Jack of Hearts')
       @client.state_changed?
-      expect(@client.game_state).to eq test_game.to_s
+      expect(@client.game_state_json['game']).to eq test_game.to_s
+    end
+
+    it 'sends a request to the server to play the round' do
+      test_game = Game.new
+      stub_request(:get, %r{/game}).to_return_json(body: { game: test_game })
+      stub_request(:post, %r{/game}).to_return_json(body: { game: test_game })
+      @client.game_state_json
+      @client.send_turn('Jamison for Jack of Hearts')
+      expect(a_request(:post,
+                       %r{/game}).with(body: { "opponent": 'Jamison',
+                                               "card_rank": 'Jack' })).to have_been_made.at_least_once
     end
   end
 end
